@@ -7,7 +7,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
   app.enableCors({
-    origin: true,
+    origin: [
+      'http://localhost:3001',
+      /\.vercel\.app$/,  // Allow all Vercel deployments
+    ],
     credentials: true,
   });
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
