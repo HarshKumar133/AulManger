@@ -16,8 +16,12 @@ model User {
 }
 
 model Task {
-  id     Int    @id @default(autoincrement())
-  title  String
-  userId Int
-  user   User   @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  title     String
+  completed Boolean  @default(false)
+  priority  String   @default("medium") // low/medium/high
+  dueDate   DateTime?
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }

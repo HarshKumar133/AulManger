@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module.js';
 import cookieParser from 'cookie-parser';
 
@@ -13,6 +14,12 @@ async function bootstrap() {
     ],
     credentials: true,
   });
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    })
+  );
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();
