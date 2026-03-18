@@ -14,19 +14,19 @@ export class AuthController {
   async login(@Body() body: any, @Res({ passthrough: true }) res: any) {
     const data = await this.authService.login(body.email, body.password);
 
-    res.cookie("token", data.token, {
+    res.cookie('token', data.token, {
       httpOnly: true,
       secure: false, // true in production https
-      sameSite: "lax",
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    return { message: "Login success ✅" };
+    return { message: 'Login success ✅' };
   }
 
-  @Post("logout")
+  @Post('logout')
   logout(@Res({ passthrough: true }) res: any) {
-    res.clearCookie("token");
-    return { message: "Logged out ✅" };
+    res.clearCookie('token');
+    return { message: 'Logged out ✅' };
   }
 }

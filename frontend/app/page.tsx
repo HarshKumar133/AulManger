@@ -1,21 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "./lib/api";
 import TaskDashboard from "./components/TaskDashboard";
 import { Button } from "@/components/ui/button";
-import { LogOut, UserPlus, LogIn } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowRight, LogIn, LogOut, Sparkles, UserPlus } from "lucide-react";
 
 export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  async function checkAuth() {
-    const res = await apiFetch("/tasks");
-    setLoggedIn(res.ok);
-    setLoading(false);
-  }
+  const checkAuth = useCallback(async () => {
+    try {
+      const res = await apiFetch("/tasks");
+      setLoggedIn(res.ok);
+    } catch {
+      setLoggedIn(false);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   async function logout() {
     await apiFetch("/auth/logout", { method: "POST" });
@@ -23,15 +29,19 @@ export default function Home() {
   }
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    const timer = setTimeout(() => {
+      void checkAuth();
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [checkAuth]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="app-bg min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Loading...</p>
+          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-4 border-stone-900" />
+          <p className="font-medium text-stone-700">Loading workspace...</p>
         </div>
       </div>
     );
@@ -39,73 +49,89 @@ export default function Home() {
 
   if (!loggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
-          {/* Hero Card */}
-          <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6 border-0">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Task Manager
-              </h1>
-              <p className="text-gray-600">
-                Organize your tasks, boost your productivity
-              </p>
+      <div className="app-bg min-h-screen px-4 py-10 md:py-16">
+        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-[1.15fr_1fr]">
+          <section className="rounded-3xl border border-white/60 bg-white/70 p-8 shadow-xl backdrop-blur md:p-10">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium uppercase tracking-[0.15em] text-stone-500">
+              <Sparkles className="h-3.5 w-3.5" />
+              Calm Productivity
             </div>
+            <h1 className="text-4xl font-semibold leading-tight text-stone-800 md:text-6xl">
+              A cleaner task workspace with built-in context memory.
+            </h1>
+            <p className="mt-5 max-w-2xl text-stone-600 md:text-lg">
+              Organize your day with focus-first visuals, meaningful filters, and a workflow that remembers your context.
+            </p>
 
-            <div className="space-y-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/register" className="block">
-                <Button className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
-                  <UserPlus className="h-5 w-5 mr-2" />
+                <Button className="h-11 bg-stone-900 px-6 text-white hover:bg-stone-800">
+                  <UserPlus className="mr-2 h-4 w-4" />
                   Create Account
                 </Button>
               </Link>
-
               <Link href="/login" className="block">
-                <Button variant="outline" className="w-full h-12 border-2 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-300">
-                  <LogIn className="h-5 w-5 mr-2" />
+                <Button variant="outline" className="h-11 border-stone-300 px-6 text-stone-800 hover:bg-stone-100">
+                  <LogIn className="mr-2 h-4 w-4" />
                   Sign In
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>
-          </div>
 
-          {/* Features */}
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
-              <div className="text-2xl mb-1">✓</div>
-              <p className="text-xs text-gray-600 font-medium">Easy to Use</p>
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <Card className="rounded-2xl border-stone-200 bg-stone-50 p-4 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.12em] text-stone-500">Clarity</p>
+                <p className="mt-2 text-sm font-medium text-stone-700">Designed for fast scanning and decision making.</p>
+              </Card>
+              <Card className="rounded-2xl border-stone-200 bg-stone-50 p-4 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.12em] text-stone-500">Memory</p>
+                <p className="mt-2 text-sm font-medium text-stone-700">Your dashboard remembers filters and preferences.</p>
+              </Card>
+              <Card className="rounded-2xl border-stone-200 bg-stone-50 p-4 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.12em] text-stone-500">Momentum</p>
+                <p className="mt-2 text-sm font-medium text-stone-700">Stay in flow with low-friction task operations.</p>
+              </Card>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
-              <div className="text-2xl mb-1">🚀</div>
-              <p className="text-xs text-gray-600 font-medium">Fast & Secure</p>
+          </section>
+
+          <Card className="rounded-3xl border-stone-200/80 bg-white p-6 shadow-xl md:p-8">
+            <h2 className="text-2xl font-semibold text-stone-800">Today at a glance</h2>
+            <p className="mt-2 text-sm text-stone-600">Set priorities, finish deep work, and keep context in one place.</p>
+
+            <div className="mt-6 space-y-4">
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+                <p className="text-xs uppercase tracking-[0.12em] text-stone-500">Morning Focus</p>
+                <p className="mt-2 text-sm text-stone-700">Review pending tasks and plan your top three outcomes.</p>
+              </div>
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+                <p className="text-xs uppercase tracking-[0.12em] text-stone-500">Execution</p>
+                <p className="mt-2 text-sm text-stone-700">Use filters and priorities to move quickly through your list.</p>
+              </div>
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+                <p className="text-xs uppercase tracking-[0.12em] text-stone-500">Reflection</p>
+                <p className="mt-2 text-sm text-stone-700">Your timeline tracks progress so you can review momentum.</p>
+              </div>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
-              <div className="text-2xl mb-1">📱</div>
-              <p className="text-xs text-gray-600 font-medium">Responsive</p>
-            </div>
-          </div>
+
+            <p className="mt-6 text-sm text-stone-500">No clutter. No guesswork. Just clear progress.</p>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Top Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="app-bg min-h-screen">
+      <nav className="sticky top-0 z-50 border-b border-stone-200/80 bg-white/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:px-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-900 text-white">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-xl font-semibold text-stone-800">
               Task Manager
             </span>
           </div>
@@ -113,7 +139,7 @@ export default function Home() {
           <Button
             onClick={logout}
             variant="outline"
-            className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+            className="border-stone-300 text-stone-700 hover:bg-stone-100"
           >
             <LogOut className="h-4 w-4 mr-2" />
             Logout

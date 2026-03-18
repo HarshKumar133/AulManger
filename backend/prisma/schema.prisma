@@ -8,20 +8,117 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  name     String
-  email    String  @unique
-  password String
-  tasks    Task[]
+  id                Int                    @id @default(autoincrement())
+  name              String
+  email             String                 @unique
+  password          String
+  tasks             Task[]
+  projects          Project[]
+  activityLogs      ActivityLog[]
+  preferences       UserPreference[]
+  workspaceContexts UserWorkspaceContext[]
+  aiConversations   AiConversation[]
+  aiMessages        AiMessage[]
 }
 
 model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  priority    String    @default("medium") // low/medium/high
+  dueDate     DateTime?
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  projectId   Int?
+  project     Project?  @relation(fields: [projectId], references: [id])
+  parentTaskId Int?
+  parentTask   Task?     @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
+  subtasks     Task[]    @relation("TaskHierarchy")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  @@index([userId, deletedAt])
+  @@index([projectId])
+  @@index([parentTaskId])
+}
+
+model Project {
   id        Int      @id @default(autoincrement())
-  title     String
-  completed Boolean  @default(false)
-  priority  String   @default("medium") // low/medium/high
-  dueDate   DateTime?
+  name      String
+  color     String?
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+  tasks     Task[]
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@unique([userId, name])
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  entityType String
+  entityId   String
+  action     String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+}
+
+model UserPreference {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId, key])
+}
+
+model UserWorkspaceContext {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  scope     String
+  context   Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId, scope])
+}
+
+model AiConversation {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  user      User        @relation(fields: [userId], references: [id])
+  title     String
+  messages  AiMessage[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([userId, updatedAt])
+}
+
+model AiMessage {
+  id              Int            @id @default(autoincrement())
+  conversationId  Int
+  conversation    AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          Int
+  user            User           @relation(fields: [userId], references: [id])
+  role            String
+  content         String
+  contextSnapshot Json?
+  createdAt       DateTime       @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([userId, createdAt])
 }
